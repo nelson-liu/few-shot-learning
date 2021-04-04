@@ -296,6 +296,47 @@ def load_rte():
 
     return train_questions, train_answers, test_questions, test_answers
 
+def load_mnli():
+    train_questions = []
+    train_answers = []
+    with open("data/mnli/train.jsonl", "r") as f:
+        for line in f:
+            myjson = json.loads(line)
+            p = myjson['sentence1']
+            q = myjson['sentence2']
+            if myjson['gold_label'] == '-':
+                continue
+            elif myjson['gold_label'] == 'contradiction':
+                train_answers.append(0)
+            elif myjson['gold_label'] == 'neutral':
+                train_answers.append(1)
+            elif myjson['gold_label'] == 'entailment':
+                train_answers.append(2)
+            else:
+                exit('answer')
+            train_questions.append(p + '\n' + 'Question: ' + q + ' True, False, or Neither?')
+
+    test_questions = []
+    test_answers = []
+    with open("data/mnli/dev.jsonl", "r") as f:
+        for line in f:
+            myjson = json.loads(line)
+            p = myjson['sentence1']
+            q = myjson['sentence2']
+            if myjson['gold_label'] == '-':
+                continue
+            elif myjson['gold_label'] == 'contradiction':
+                test_answers.append(0)
+            elif myjson['gold_label'] == 'neutral':
+                test_answers.append(1)
+            elif myjson['gold_label'] == 'entailment':
+                test_answers.append(2)
+            else:
+                exit('answer')
+            test_questions.append(p + '\n' + 'Question: ' + q + ' True, False, or Neither?')
+
+    return train_questions, train_answers, test_questions, test_answers
+
 def load_dataset(params):
     """
     Load train and test data
@@ -344,13 +385,26 @@ def load_dataset(params):
         params['task_format'] = 'classification'
         params['num_tokens_to_predict'] = 1
 
+    elif params['dataset'] == 'mnli':
+        orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_mnli()
+        params['prompt_prefix'] = ""
+        params["q_prefix"] = " "
+        params["a_prefix"] = "answer: "
+        # params['label_dict'] = {0: ['contradiction'], 1: ['neutral'], 2: ['entailment']}
+        # params['inv_label_dict'] = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
+        params['label_dict'] = {0: ['False'], 1: ['Neither'], 2: ['True']}
+        params['inv_label_dict'] = {'False': 0, 'Neither': 1, 'True': 2}
+        params['num_user_input'] = 2
+        params['task_format'] = 'classification'
+        params['num_tokens_to_predict'] = 1
+
     elif params['dataset'] == 'cb':
         orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = get_cb()
         params['prompt_prefix'] = ""
         params["q_prefix"] = ""
         params["a_prefix"] = "answer: "
-        params['label_dict'] = {0: ['false'], 1: ['neither'], 2: ['true']}
-        params['inv_label_dict'] = {'false': 0, 'neither': 1, 'true': 2}
+        params['label_dict'] = {0: ['False'], 1: ['Neither'], 2: ['True']}
+        params['inv_label_dict'] = {'False': 0, 'Neither': 1, 'True': 2}
         params['task_format'] = 'classification'
         params['num_tokens_to_predict'] = 1
 
