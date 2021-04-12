@@ -33,7 +33,10 @@ def main(models, datasets, all_shots, num_seeds, subsample_test_set, api_num_log
     if use_saved_results:
         load_results(all_params)
     else:
-        save_results(all_params)
+        # Filter our params where the expr name already exists
+        params_to_run = [param for param in all_params if not os.path.exists(os.path.join(SAVE_DIR, param['expr_name']))]
+        print(f"Filtered {len(all_params) - len(params_to_run)} models")
+        save_results(params_to_run)
 
 
 def save_results(params_list, freeze_test_set=True):
