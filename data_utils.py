@@ -32,7 +32,7 @@ def load_imdb():
             sentences.append(myjson['text'])
             if myjson['label'] == 'neg':
                 labels.append(0)
-            elif myjson['elabel'] == 'pos':
+            elif myjson['label'] == 'pos':
                 labels.append(1)
         return sentences, labels
 
