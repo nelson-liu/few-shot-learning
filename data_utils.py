@@ -22,6 +22,28 @@ def load_sst2():
     test_sentences, test_labels = process_raw_data_sst(test_lines)
     return train_sentences, train_labels, test_sentences, test_labels
 
+def load_imdb():
+    def process_raw_data_imdb(lines):
+        """from lines in dataset to two lists of sentences and labels respectively"""
+        labels = []
+        sentences = []
+        for line in lines:
+            myjson = json.loads(line)
+            sentences.append(myjson['text'])
+            if myjson['label'] == 'neg':
+                labels.append(0)
+            elif myjson['elabel'] == 'pos':
+                labels.append(1)
+        return sentences, labels
+
+    with open("data/imdb/train.jsonl", "r") as f:
+        train_lines = f.readlines()
+    with open("data/imdb/test.jsonl", "r") as f:
+        test_lines = f.readlines()
+    train_sentences, train_labels = process_raw_data_imdb(train_lines)
+    test_sentences, test_labels = process_raw_data_imdb(test_lines)
+    return train_sentences, train_labels, test_sentences, test_labels
+
 def load_agnews():
     train_data = pd.read_csv(f'{ROOT_DIR}/data/agnews/train.csv')
     test_data = pd.read_csv(f'{ROOT_DIR}/data/agnews/test.csv')
@@ -353,7 +375,15 @@ def load_dataset(params):
         params['inv_label_dict'] = {'Negative': 0, 'Positive': 1}
         params['task_format'] = 'classification'
         params['num_tokens_to_predict'] = 1
-
+    if params['dataset'] == 'imdb':
+        orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_imdb()
+        params['prompt_prefix'] = ""
+        params["q_prefix"] = "Review: "
+        params["a_prefix"] = "Sentiment: "
+        params['label_dict'] = {0: ['Negative'], 1: ['Positive']}
+        params['inv_label_dict'] = {'Negative': 0, 'Positive': 1}
+        params['task_format'] = 'classification'
+        params['num_tokens_to_predict'] = 1
     elif params['dataset'] == 'agnews':
         orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_agnews()
         params['prompt_prefix'] = "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\n"
