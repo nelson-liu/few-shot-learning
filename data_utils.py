@@ -11,22 +11,29 @@ def truncate_sequence(s, max_length):
     return truncating_tokenizer.decode(truncating_tokenizer(s, max_length=max_length)["input_ids"]).strip(" ")
 
 
-def load_sst2():
-    def process_raw_data_sst(lines):
+def load_sst2(max_length):
+    def process_raw_data_imdb(lines, max_seq_length):
         """from lines in dataset to two lists of sentences and labels respectively"""
         labels = []
         sentences = []
         for line in lines:
-            labels.append(int(line[0]))
-            sentences.append(line[2:].strip())
+            myjson = json.loads(line)
+            text = myjson['text']
+            if max_seq_length:
+                text = truncate_sequence(text, max_seq_length)
+            sentences.append(text)
+            if myjson['label'] == 'neg':
+                labels.append(0)
+            elif myjson['label'] == 'pos':
+                labels.append(1)
         return sentences, labels
 
-    with open(f"{ROOT_DIR}/data/sst2/stsa.binary.train", "r") as f:
+    with open("data/sst2/sst2_train.jsonl", "r") as f:
         train_lines = f.readlines()
-    with open(f"{ROOT_DIR}/data/sst2/stsa.binary.test", "r") as f:
+    with open("data/sst2/sst2_test.jsonl", "r") as f:
         test_lines = f.readlines()
-    train_sentences, train_labels = process_raw_data_sst(train_lines)
-    test_sentences, test_labels = process_raw_data_sst(test_lines)
+    train_sentences, train_labels = process_raw_data_imdb(train_lines, max_length)
+    test_sentences, test_labels = process_raw_data_imdb(test_lines, max_length)
     return train_sentences, train_labels, test_sentences, test_labels
 
 def load_imdb(max_length):
@@ -376,12 +383,12 @@ def load_dataset(params):
     :return: train_x, train_y, test_x, test_y
     """
 
-    if params['max_length'] and params['dataset'] not in ["imdb"]:
+    if params['max_length'] and params['dataset'] not in ["imdb", "sst2"]:
         raise ValueError(f"Got value {params['max_length']} for max_length, "
                          f"but max_length is not supported for dataset {params['dataset']}")
 
     if params['dataset'] == 'sst2':
-        orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_sst2()
+        orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_sst2(params['max_length'])
         params['prompt_prefix'] = ""
         params["q_prefix"] = "Review: "
         params["a_prefix"] = "Sentiment: "
