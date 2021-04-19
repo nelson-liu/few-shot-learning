@@ -257,8 +257,8 @@ if __name__ == '__main__':
     # required arguments
     parser.add_argument('--models', dest='models', action='store', required=True, help='name of model(s), e.g., GPT2-XL')
     parser.add_argument('--datasets', dest='datasets', action='store', required=True, help='name of dataset(s), e.g., agnews')
-    parser.add_argument('--max_length', dest='max_length', action='store', help=('maximum length for a single example '
-                                                                                 '(calculated with the GPT-2 tokenizer)'))
+    parser.add_argument('--max_length', dest='max_length', type=int, action='store', help=('maximum length for a single example '
+                                                                                           '(calculated with the GPT-2 tokenizer)'))
     parser.add_argument('--num_seeds', dest='num_seeds', action='store', required=True, help='num seeds for the training set', type=int)
     parser.add_argument('--all_shots', dest='all_shots', action='store', required=True, help='num training examples to use')
     # other arguments
