@@ -49,7 +49,7 @@ def save_results(params_list, freeze_test_set=True):
         print("\nExperiment name:", params['expr_name'])
 
         ### load data
-        all_train_sentences, all_train_labels, all_test_sentences, all_test_labels = load_dataset(params, params['max_length'])
+        all_train_sentences, all_train_labels, all_test_sentences, all_test_labels = load_dataset(params)
         params_check(params)
 
         ### sample test set
