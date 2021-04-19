@@ -8,7 +8,7 @@ from transformers import GPT2Tokenizer
 truncating_tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
 def truncate_sequence(s, max_length):
-    return truncating_tokenizer.convert_ids_to_tokens(truncating_tokenizer(s, max_length=max_length)["input_ids"])
+    return truncating_tokenizer.convert_ids_to_tokens(truncating_tokenizer(s, max_length=max_length)["input_ids"]).strip(" ")
 
 
 def load_sst2():
