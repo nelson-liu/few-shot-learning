@@ -4,6 +4,13 @@ import pickle
 import numpy as np
 from utils import ROOT_DIR
 
+from transformers import GPT2Tokenizer
+truncating_tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+
+def truncate_sequence(s, max_length):
+    return truncating_tokenizer.convert_ids_to_tokens(truncating_tokenizer(s, max_length=max_length)["input_ids"])
+
+
 def load_sst2():
     def process_raw_data_sst(lines):
         """from lines in dataset to two lists of sentences and labels respectively"""
@@ -22,14 +29,17 @@ def load_sst2():
     test_sentences, test_labels = process_raw_data_sst(test_lines)
     return train_sentences, train_labels, test_sentences, test_labels
 
-def load_imdb():
-    def process_raw_data_imdb(lines):
+def load_imdb(max_length):
+    def process_raw_data_imdb(lines, max_seq_length):
         """from lines in dataset to two lists of sentences and labels respectively"""
         labels = []
         sentences = []
         for line in lines:
             myjson = json.loads(line)
-            sentences.append(myjson['text'])
+            text = myjson['text']
+            if max_seq_length:
+                text = truncate_sequence(text, max_seq_length)
+            sentences.append(text)
             if myjson['label'] == 'neg':
                 labels.append(0)
             elif myjson['label'] == 'pos':
@@ -40,8 +50,8 @@ def load_imdb():
         train_lines = f.readlines()
     with open("data/imdb/test.jsonl", "r") as f:
         test_lines = f.readlines()
-    train_sentences, train_labels = process_raw_data_imdb(train_lines)
-    test_sentences, test_labels = process_raw_data_imdb(test_lines)
+    train_sentences, train_labels = process_raw_data_imdb(train_lines, max_length)
+    test_sentences, test_labels = process_raw_data_imdb(test_lines, max_length)
     return train_sentences, train_labels, test_sentences, test_labels
 
 def load_agnews():
@@ -366,6 +376,10 @@ def load_dataset(params):
     :return: train_x, train_y, test_x, test_y
     """
 
+    if params['max_length'] and params['dataset'] not in ["imdb"]:
+        raise ValueError(f"Got value {params['max_length']} for max_length, "
+                         f"but max_length is not supported for dataset {params['dataset']}")
+
     if params['dataset'] == 'sst2':
         orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_sst2()
         params['prompt_prefix'] = ""
@@ -376,7 +390,7 @@ def load_dataset(params):
         params['task_format'] = 'classification'
         params['num_tokens_to_predict'] = 1
     if params['dataset'] == 'imdb':
-        orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_imdb()
+        orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_imdb(params['max_length'])
         params['prompt_prefix'] = ""
         params["q_prefix"] = "Review: "
         params["a_prefix"] = "Sentiment: "

@@ -2,7 +2,7 @@ import argparse
 from data_utils import load_dataset
 from utils import *
 
-def main(models, datasets, all_shots, num_seeds, subsample_test_set, api_num_log_prob, approx, use_saved_results, bs):
+def main(models, datasets, max_length, all_shots, num_seeds, subsample_test_set, api_num_log_prob, approx, use_saved_results, bs):
     """
     Run experiment or load past results, print accuracy
     """
@@ -11,6 +11,7 @@ def main(models, datasets, all_shots, num_seeds, subsample_test_set, api_num_log
         'subsample_test_set': subsample_test_set,
         'api_num_log_prob': api_num_log_prob,
         'approx': approx,
+        'max_length': max_length,
         'bs': bs
     }
 
@@ -48,7 +49,7 @@ def save_results(params_list, freeze_test_set=True):
         print("\nExperiment name:", params['expr_name'])
 
         ### load data
-        all_train_sentences, all_train_labels, all_test_sentences, all_test_labels = load_dataset(params)
+        all_train_sentences, all_train_labels, all_test_sentences, all_test_labels = load_dataset(params, params['max_length'])
         params_check(params)
 
         ### sample test set
@@ -256,6 +257,8 @@ if __name__ == '__main__':
     # required arguments
     parser.add_argument('--models', dest='models', action='store', required=True, help='name of model(s), e.g., GPT2-XL')
     parser.add_argument('--datasets', dest='datasets', action='store', required=True, help='name of dataset(s), e.g., agnews')
+    parser.add_argument('--max-length', dest='max_length', action='store', help=('maximum length for a single example '
+                                                                                 '(calculated with the GPT-2 tokenizer)'))
     parser.add_argument('--num_seeds', dest='num_seeds', action='store', required=True, help='num seeds for the training set', type=int)
     parser.add_argument('--all_shots', dest='all_shots', action='store', required=True, help='num training examples to use')
     # other arguments
