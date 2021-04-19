@@ -396,7 +396,7 @@ def load_dataset(params):
         params['inv_label_dict'] = {'Negative': 0, 'Positive': 1}
         params['task_format'] = 'classification'
         params['num_tokens_to_predict'] = 1
-    if params['dataset'] == 'imdb':
+    elif params['dataset'] == 'imdb':
         orig_train_sentences, orig_train_labels, orig_test_sentences, orig_test_labels = load_imdb(params['max_length'])
         params['prompt_prefix'] = ""
         params["q_prefix"] = "Review: "
