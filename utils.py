@@ -10,12 +10,11 @@ import openai
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from diskcache import Cache
 
-cache = Cache("cached_gpt3_requests")
-
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 SAVE_DIR = os.path.join(ROOT_DIR, 'saved_results')
+cache = Cache(os.path.join(ROOT_DIR, "cached_gpt3_requests"))
 if not os.path.isdir(SAVE_DIR):
     os.mkdir(SAVE_DIR)
     print(f"mkdir at {SAVE_DIR} for saving results")
