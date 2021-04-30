@@ -4,3 +4,4 @@ transformers == 4.3.2
 openai == 0.3.0
 pandas == 1.1.5
 tqdm
+diskcache

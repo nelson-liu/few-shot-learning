@@ -8,6 +8,10 @@ from tqdm import tqdm
 import pickle
 import openai
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from diskcache import Cache
+
+cache = Cache("cached_gpt3_requests")
+
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -156,6 +160,7 @@ def complete_gpt2(prompt, l=10, model_name='gpt2-xl', num_log_probs=None, echo=F
     return_json['choices'] = choices
     return return_json
 
+@cache.memoize()
 def complete_gpt3(prompt, l, model_name, temp=0, num_log_probs=None, echo=False, n=None):
     # call GPT-3 API until result is provided and then return it
     response = None
