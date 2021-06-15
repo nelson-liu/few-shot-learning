@@ -245,6 +245,9 @@ def get_model_response(params, train_sentences, train_labels, test_sentences, re
     else:
         prompts = override_prompt
 
+    print("First 3 prompts:")
+    print(prompts[:3])
+
     chunked_prompts = list(chunks(prompts, chunk_size_helper(params)))
     for chunk_id, test_chunk_prompts in tqdm(enumerate(chunked_prompts)):
         if num_tokens_to_predict_override is not None:
