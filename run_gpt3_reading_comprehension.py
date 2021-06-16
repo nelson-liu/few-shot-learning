@@ -3,10 +3,11 @@ import numpy as np
 import json
 from collections import Counter
 from tqdm import tqdm
+from transformers import GPT2Tokenizer
 from utils import complete_gpt3, setup_gpt3
 import random
 
-def main(model, train_data_path, test_data_path, seed, shots, batch_size, output_path):
+def main(model, train_data_path, test_data_path, seed, shots, batch_size, estimate_num_tokens, output_path):
     # Load the train data
     train_instances = []
     num_questions = 0
@@ -99,15 +100,26 @@ def main(model, train_data_path, test_data_path, seed, shots, batch_size, output
     # Construct the prompts
     prompts = []
     prompt_qids = []
-    for instance in test_instances:
+    if estimate_num_tokens:
+        tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+        num_tokens = 0
+    print("Building prompts")
+    for instance in tqdm(test_instances):
         title = instance["title"]
         context = instance["context"]
         for qa in instance["qas"]:
             question = qa["question"]
             prompt_qids.append(qa["qid"])
-            prompts.append(prompt_prefix +
-                           f"Title: {title}\nBackground: {context}\n\n" +
-                           f"Q: {question}\n\nA:")
+            prompt = (prompt_prefix +
+                      f"Title: {title}\nBackground: {context}\n\n" +
+                      f"Q: {question}\n\nA:")
+            if estimate_num_tokens:
+                num_tokens += len(tokenizer.encode_plus(prompt)["input_ids"])
+            prompts.append(prompt)
+
+    if estimate_num_tokens:
+        print(f"Prompt total GPT-2 token count: {num_tokens}")
+        return
 
     # Get the responses from the API
     print(f"getting raw resp for {len(prompts)} prompts")
@@ -156,7 +168,8 @@ if __name__ == '__main__':
     parser.add_argument('--shots', type=int, required=True, help='Num training examples to use')
     parser.add_argument('--batch-size', type=int, default=8,
                         help='batch size for model queries.')
+    parser.add_argument('--estimate-num-tokens', action="store_true", help='Try to estimate the number of tokens to use')
     parser.add_argument('--output-path', type=str,
                         help='Write predictions to this path.')
     args = parser.parse_args()
-    main(args.model, args.train_data_path, args.test_data_path, args.seed, args.shots, args.batch_size, args.output_path)
+    main(args.model, args.train_data_path, args.test_data_path, args.seed, args.shots, args.batch_size, args.estimate_num_tokens, args.output_path)
