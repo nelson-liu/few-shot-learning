@@ -55,6 +55,7 @@ def main(model, train_data_path, test_data_path, seed, shots, batch_size, output
 
     # Set the seed
     np.random.seed(seed)
+    random.seed(seed)
 
     # Get instances for training
     in_context_instances = []
