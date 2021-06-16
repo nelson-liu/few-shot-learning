@@ -100,10 +100,6 @@ def main(model, train_data_path, test_data_path, seed, shots, batch_size, estima
     # Construct the prompts
     prompts = []
     prompt_qids = []
-    if estimate_num_tokens:
-        tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-        num_tokens = 0
-    print("Building prompts")
     for instance in tqdm(test_instances):
         title = instance["title"]
         context = instance["context"]
@@ -113,12 +109,14 @@ def main(model, train_data_path, test_data_path, seed, shots, batch_size, estima
             prompt = (prompt_prefix +
                       f"Title: {title}\nBackground: {context}\n\n" +
                       f"Q: {question}\n\nA:")
-            if estimate_num_tokens:
-                num_tokens += len(tokenizer.encode_plus(prompt)["input_ids"])
             prompts.append(prompt)
 
     if estimate_num_tokens:
-        print(f"Prompt total GPT-2 token count: {num_tokens}")
+        tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+        tokenizer_output = tokenizer(prompts)
+        lengths = [len(x) for x in tokenizer_output["input_ids"]]
+        print(f"Prompt total GPT-2 token count: {sum(lengths)}")
+        print(f"Longest prompt total GPT-2 token count: {max(lengths)}")
         return
 
     # Get the responses from the API
