@@ -100,7 +100,7 @@ def main(model, train_data_path, test_data_path, seed, shots, batch_size, estima
     # Construct the prompts
     prompts = []
     prompt_qids = []
-    for instance in tqdm(test_instances):
+    for instance in test_instances:
         title = instance["title"]
         context = instance["context"]
         for qa in instance["qas"]:
