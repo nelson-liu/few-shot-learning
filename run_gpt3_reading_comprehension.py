@@ -116,9 +116,14 @@ def main(model, train_data_path, test_data_path, seed, shots, batch_size, estima
         for qa in instance["qas"]:
             question = qa["question"]
             prompt_qids.append(qa["qid"])
-            prompt = (prompt_prefix +
-                      f"Title: {title}\nBackground: {context}\n\n" +
-                      f"Q: {question}\n\nA:")
+            if no_title:
+                prompt = (prompt_prefix +
+                          f"Background: {context}\n\n" +
+                          f"Q: {question}\n\nA:")
+            else:
+                prompt = (prompt_prefix +
+                          f"Title: {title}\nBackground: {context}\n\n" +
+                          f"Q: {question}\n\nA:")
             prompts.append(prompt)
 
     if estimate_num_tokens:
