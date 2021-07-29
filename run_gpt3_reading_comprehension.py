@@ -9,7 +9,7 @@ import random
 
 gpt2_tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
-def main(model, train_data_path, test_data_path, seed, shots, batch_size, estimate_num_tokens, max_length, output_path):
+def main(model, train_data_path, test_data_path, seed, shots, batch_size, estimate_num_tokens, in_context_max_length, max_length, output_path):
     # Load the train data
     train_instances = []
     num_questions = 0
@@ -87,8 +87,8 @@ def main(model, train_data_path, test_data_path, seed, shots, batch_size, estima
         for instance in in_context_instances:
             title = instance["title"]
             context = instance["context"]
-            if max_length:
-                context = truncate_sequence(context, max_length)
+            if in_context_max_length:
+                context = truncate_sequence(context, in_context_max_length)
             qas_as_strings = []
             for qa in instance["qas"]:
                 question = qa["question"]
@@ -107,6 +107,8 @@ def main(model, train_data_path, test_data_path, seed, shots, batch_size, estima
     for instance in test_instances:
         title = instance["title"]
         context = instance["context"]
+        if max_length:
+            context = truncate_sequence(context, max_length)
         for qa in instance["qas"]:
             question = qa["question"]
             prompt_qids.append(qa["qid"])
@@ -174,8 +176,9 @@ if __name__ == '__main__':
     parser.add_argument('--batch-size', type=int, default=8,
                         help='batch size for model queries.')
     parser.add_argument('--estimate-num-tokens', action="store_true", help='Try to estimate the number of tokens to use')
-    parser.add_argument('--max-length', type=int, help='Truncate passages to this maximum length')
+    parser.add_argument('--in-context-max-length', type=int, help='Truncate in-context passages to this maximum length')
+    parser.add_argument('--max-length', type=int, help='Truncate test passages to this maximum length')
     parser.add_argument('--output-path', type=str,
                         help='Write predictions to this path.')
     args = parser.parse_args()
-    main(args.model, args.train_data_path, args.test_data_path, args.seed, args.shots, args.batch_size, args.estimate_num_tokens, args.max_length, args.output_path)
+    main(args.model, args.train_data_path, args.test_data_path, args.seed, args.shots, args.batch_size, args.estimate_num_tokens, args.in_context_max_length, args.max_length, args.output_path)
