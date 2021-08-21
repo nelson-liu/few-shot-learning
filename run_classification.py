@@ -1,8 +1,9 @@
 import argparse
 from data_utils import load_dataset
 from utils import *
+import sys
 
-def main(models, datasets, max_length, all_shots, num_seeds, subsample_test_set, api_num_log_prob, approx, use_saved_results, bs):
+def main(models, datasets, max_length, all_shots, num_seeds, subsample_test_set, api_num_log_prob, approx, use_saved_results, bs, estimate_num_tokens):
     """
     Run experiment or load past results, print accuracy
     """
@@ -12,7 +13,8 @@ def main(models, datasets, max_length, all_shots, num_seeds, subsample_test_set,
         'api_num_log_prob': api_num_log_prob,
         'approx': approx,
         'max_length': max_length,
-        'bs': bs
+        'bs': bs,
+        'estimate_num_tokens': estimate_num_tokens
     }
 
     # list of all experiment parameters to run
@@ -71,6 +73,11 @@ def save_results(params_list, freeze_test_set=True):
 
         ### Evaluate the performance and save all results
         # obtaining model's response on test examples
+        if params["estimate_num_tokens"]:
+            print(f"Estimating number of tokens")
+            raw_resp_test = get_model_response(params, train_sentences, train_labels, test_sentences,
+                                               estimate_num_tokens=True)
+            sys.exit(0)
         print(f"getting raw resp for {len(test_sentences)} test sentences")
         raw_resp_test = get_model_response(params, train_sentences, train_labels, test_sentences)
 
@@ -239,12 +246,13 @@ def params_check(params):
     """sanity check the experiment params"""
     assert params['num_tokens_to_predict'] == 1
     # for classification, make sure that all of the class names are one word.
-    for key, label_names in params['label_dict'].items():
-        for label_id, label_name in enumerate(label_names):
-            first_token_of_label_name = complete(' ' + label_name, 1, params['model'], echo=True, num_log_probs=2)['choices'][0]['logprobs']['tokens'][0]
-            if first_token_of_label_name[1:] != label_name:
-                print('label name is more than 1 token', label_name)
-                assert False
+    if not params["estimate_num_tokens"]:
+        for key, label_names in params['label_dict'].items():
+            for label_id, label_name in enumerate(label_names):
+                first_token_of_label_name = complete(' ' + label_name, 1, params['model'], echo=True, num_log_probs=2)['choices'][0]['logprobs']['tokens'][0]
+                if first_token_of_label_name[1:] != label_name:
+                    print('label name is more than 1 token', label_name)
+                    assert False
 
     if not (params['dataset'] in ['cb', 'rte']):
         # formatting: there should be a space after question/answer prefix
@@ -273,7 +281,8 @@ if __name__ == '__main__':
                         help='whether to load the results from pickle files and not run the model')
     parser.add_argument('--approx', dest='approx', action='store_const', const=True, default=False,
                         help='whether to set token prob to zero if not in top 100')
-
+    parser.add_argument('--estimate_num_tokens', dest='estimate_num_tokens', action='store_const', const=True, default=False,
+                        help='Try to estimate the number of tokens to use')
     args = parser.parse_args()
     args = vars(args)
 

@@ -223,7 +223,7 @@ def construct_prompt(params, train_sentences, train_labels, test_sentence):
     return prompt
 
 def get_model_response(params, train_sentences, train_labels, test_sentences, return_all_prompts=False,
-                       num_tokens_to_predict_override=None, override_prompt=None):
+                       num_tokens_to_predict_override=None, override_prompt=None, estimate_num_tokens=False):
     """
     Obtain model's responses on test sentences, given the training examples
     :param params: parameters for the experiment
@@ -249,6 +249,13 @@ def get_model_response(params, train_sentences, train_labels, test_sentences, re
     print(prompts[:3])
 
     chunked_prompts = list(chunks(prompts, chunk_size_helper(params)))
+    if estimate_num_tokens:
+        tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+        tokenizer_output = tokenizer(prompts)
+        lengths = [len(x) for x in tokenizer_output["input_ids"]]
+        print(f"Prompt total GPT-2 token count: {sum(lengths)}")
+        print(f"Longest prompt total GPT-2 token count: {max(lengths)}")
+        return
     for chunk_id, test_chunk_prompts in tqdm(enumerate(chunked_prompts)):
         if num_tokens_to_predict_override is not None:
             num_tokens_to_predict = num_tokens_to_predict_override
