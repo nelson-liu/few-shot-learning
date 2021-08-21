@@ -16,7 +16,7 @@ def main(predictions_path, gold_path):
     label_map = {0: "non-entailment", 1: "non-entailment", 2: "entailment"}
     for label_probs in predictions["all_label_probs"]:
         predicted_label = np.argmax(label_probs)
-        mapped_predictions.append(predicted_label)
+        mapped_predictions.append(label_map[predicted_label])
 
     assert len(mapped_predictions) == len(gold_labels)
     total = 0
